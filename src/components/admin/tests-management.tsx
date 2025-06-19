@@ -18,8 +18,7 @@ import {
   SwatchIcon,
   XMarkIcon,
   CheckIcon,
-  DocumentTextIcon,
-  SwatchIcon
+  DocumentTextIcon
 } from '@heroicons/react/24/outline';
 import { databaseColorTestService, GroupedTest } from '@/lib/database-color-test-service';
 import { databaseManagementService, DatabaseTestEntry } from '@/lib/database-management-service';
@@ -900,5 +899,3 @@ export function TestsManagement({ lang }: TestsManagementProps) {
     </div>
   );
 }
-
-
