@@ -364,15 +364,13 @@ export function TestsManagement({ lang }: TestsManagementProps) {
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               id="import-file"
             />
-            <Button
-              variant="outline"
-              className="flex items-center space-x-2 rtl:space-x-reverse text-purple-600 border-purple-600 hover:bg-purple-50"
-              as="label"
+            <label
               htmlFor="import-file"
+              className="inline-flex items-center space-x-2 rtl:space-x-reverse px-4 py-2 border border-purple-600 text-purple-600 bg-white hover:bg-purple-50 rounded-md text-sm font-medium cursor-pointer transition-colors"
             >
               <SwatchIcon className="h-4 w-4" />
               <span>{lang === 'ar' ? 'استيراد البيانات' : 'Import Data'}</span>
-            </Button>
+            </label>
           </div>
           <Button
             onClick={handleReloadData}
@@ -899,3 +897,5 @@ export function TestsManagement({ lang }: TestsManagementProps) {
     </div>
   );
 }
+
+
