@@ -5,17 +5,21 @@ import { useRouter } from 'next/navigation';
 import { Language } from '@/types';
 
 import { DataService, ChemicalTest, ColorResult as DataServiceColorResult, TestInstruction, TestSession } from '@/lib/data-service';
+import { subscriptionService } from '@/lib/subscription-service';
+import { useAuth } from '@/components/auth/auth-guard';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ColorSelector } from '@/components/ui/color-selector';
 import { TestInstructions } from '@/components/ui/test-instructions';
 import { TestResults } from '@/components/ui/test-results';
-import { 
+import {
   ArrowLeftIcon,
   BeakerIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
-  ClockIcon
+  ClockIcon,
+  LockClosedIcon,
+  StarIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
@@ -86,10 +90,21 @@ export function TestPage({ lang, testId }: TestPageProps) {
   const [notes, setNotes] = useState('');
 
   const router = useRouter();
+  const { user } = useAuth();
 
   useEffect(() => {
     const loadTestData = async () => {
       try {
+        // Check access permission first
+        if (user) {
+          const accessInfo = subscriptionService.getTestAccessInfo(user.id, testId);
+          if (!accessInfo.hasAccess) {
+            toast.error(lang === 'ar' ? 'هذا الاختبار يتطلب اشتراك مميز' : 'This test requires premium subscription');
+            router.push(`/${lang}/subscription`);
+            return;
+          }
+        }
+
         // Load test data
         const testData = DataService.getChemicalTestById(testId);
         if (!testData) {
@@ -118,7 +133,7 @@ export function TestPage({ lang, testId }: TestPageProps) {
     };
 
     loadTestData();
-  }, [testId, lang, router]);
+  }, [testId, lang, router, user]);
 
   const handleStepComplete = (step: TestStep) => {
     switch (step) {
@@ -215,6 +230,64 @@ export function TestPage({ lang, testId }: TestPageProps) {
           <Button onClick={() => router.push(`/${lang}/tests`)}>
             {lang === 'ar' ? 'العودة' : 'Back'}
           </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Check access for loaded test
+  const accessInfo = user ? subscriptionService.getTestAccessInfo(user.id, testId) :
+    { hasAccess: true, isFree: true, isPremium: false, requiresUpgrade: false };
+
+  if (user && accessInfo.requiresUpgrade) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-primary-950 dark:via-background dark:to-secondary-950">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-2xl mx-auto text-center">
+            <div className="mb-8">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-yellow-100 dark:bg-yellow-900/20 mb-6">
+                <LockClosedIcon className="h-10 w-10 text-yellow-600" />
+              </div>
+
+              <h1 className="text-3xl font-bold text-foreground mb-4">
+                {lang === 'ar' ? 'اختبار مميز' : 'Premium Test'}
+              </h1>
+
+              <p className="text-lg text-muted-foreground mb-6">
+                {lang === 'ar'
+                  ? 'هذا الاختبار متاح فقط للمشتركين في الخطة المميزة'
+                  : 'This test is only available for premium subscribers'
+                }
+              </p>
+
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-border p-6 mb-6">
+                <h2 className="text-xl font-semibold text-foreground mb-4">
+                  {lang === 'ar' ? test.method_name_ar : test.method_name}
+                </h2>
+                <p className="text-muted-foreground">
+                  {lang === 'ar' ? test.description_ar : test.description}
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button
+                  onClick={() => router.push(`/${lang}/subscription`)}
+                  className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                >
+                  <StarIcon className="h-4 w-4 mr-2 rtl:ml-2 rtl:mr-0" />
+                  {lang === 'ar' ? 'ترقية إلى المميز' : 'Upgrade to Premium'}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={() => router.push(`/${lang}/tests`)}
+                >
+                  <ArrowLeftIcon className="h-4 w-4 mr-2 rtl:ml-2 rtl:mr-0 rtl:rotate-180" />
+                  {lang === 'ar' ? 'العودة للاختبارات' : 'Back to Tests'}
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );

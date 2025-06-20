@@ -282,8 +282,8 @@ export function TestsPage({ lang }: TestsPageProps) {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredTests.map((test) => {
-              const hasAccess = user ? subscriptionService.canAccessTest(user.id, test.id) : false;
-              const isLocked = user && !hasAccess;
+              const accessInfo = user ? subscriptionService.getTestAccessInfo(user.id, test.id) :
+                { hasAccess: true, isFree: true, isPremium: false, requiresUpgrade: false };
 
               return (
                 <div key={test.id} className="relative">
@@ -291,7 +291,7 @@ export function TestsPage({ lang }: TestsPageProps) {
                     test={test}
                     lang={lang}
                     onClick={(testId) => {
-                      if (hasAccess || !user) {
+                      if (accessInfo.hasAccess || !user) {
                         console.log('Test card clicked, navigating to:', `/${lang}/tests/${testId}`);
                         router.push(`/${lang}/tests/${testId}`);
                       } else {
@@ -299,11 +299,26 @@ export function TestsPage({ lang }: TestsPageProps) {
                         router.push(`/${lang}/subscription`);
                       }
                     }}
-                    className={isLocked ? 'opacity-75' : ''}
+                    className={accessInfo.requiresUpgrade ? 'opacity-75' : ''}
                   />
 
-                  {/* Lock Overlay for Premium Tests */}
-                  {isLocked && (
+                  {/* Free Badge for Free Tests */}
+                  {accessInfo.isFree && (
+                    <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                      {lang === 'ar' ? 'مجاني' : 'Free'}
+                    </div>
+                  )}
+
+                  {/* Premium Badge for Premium Tests with Access */}
+                  {accessInfo.isPremium && accessInfo.hasAccess && (
+                    <div className="absolute top-2 right-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center">
+                      <StarIcon className="h-3 w-3 mr-1 rtl:ml-1 rtl:mr-0" />
+                      {lang === 'ar' ? 'مميز' : 'Premium'}
+                    </div>
+                  )}
+
+                  {/* Lock Overlay for Premium Tests without Access */}
+                  {accessInfo.requiresUpgrade && (
                     <div className="absolute inset-0 bg-black/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
                       <div className="text-center p-4">
                         <LockClosedIcon className="h-8 w-8 text-white mx-auto mb-2" />

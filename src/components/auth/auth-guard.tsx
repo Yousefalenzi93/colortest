@@ -22,7 +22,8 @@ const PUBLIC_ROUTES = [
 
 // Admin routes that use separate authentication
 const ADMIN_ROUTES = [
-  '/yousef'
+  '/yousef',
+  '/admin'
 ];
 
 export function AuthGuard({ children, lang }: AuthGuardProps) {

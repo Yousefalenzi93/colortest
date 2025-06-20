@@ -114,13 +114,13 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   }
 ];
 
-// Free tier test IDs
+// Free tier test IDs - الاختبارات المجانية
 export const FREE_TIER_TESTS = [
-  'marquis-test-1',
-  'mecke-test-1',
-  'nitric-acid-test-1',
-  'ferric-sulfate-test-1',
-  'fast-blue-b-salt-test'
+  'marquis-test',      // اختبار ماركيز - للكشف الأساسي
+  'mecke-test',        // اختبار ميك - للمواد الأفيونية
+  'nitric-acid-test',  // اختبار حمض النيتريك
+  'ferric-sulfate-test', // اختبار كبريتات الحديد
+  'fast-blue-b-test'   // اختبار الحشيش
 ];
 
 class SubscriptionService {
@@ -177,26 +177,45 @@ class SubscriptionService {
   }
 
   /**
+   * Get test access info for UI display
+   */
+  getTestAccessInfo(userId: string, testId: string): {
+    hasAccess: boolean;
+    isFree: boolean;
+    isPremium: boolean;
+    requiresUpgrade: boolean;
+  } {
+    const isFree = FREE_TIER_TESTS.includes(testId);
+    const hasAccess = this.canAccessTest(userId, testId);
+    const hasPremium = this.hasPremiumAccess(userId);
+
+    return {
+      hasAccess,
+      isFree,
+      isPremium: !isFree,
+      requiresUpgrade: !hasAccess && !hasPremium
+    };
+  }
+
+  /**
    * Get accessible tests for user
    */
   getAccessibleTests(userId: string): string[] {
     if (this.hasPremiumAccess(userId)) {
-      // Return all test IDs (you would get this from your test database)
+      // Return all test IDs - جميع الاختبارات للمستخدمين المميزين
       return [
         ...FREE_TIER_TESTS,
-        'marquis-test-2',
-        'marquis-test-fentanyl',
-        'marquis-test-methadone',
-        'nitric-sulfuric-acid-test',
-        'marquis-test-pethidine',
-        'liebermann-test-pethidine',
-        'chen-kao-test',
-        'potassium-dichromate-test',
         'duquenois-levine-test',
-        'modified-cobalt-thiocyanate-test',
+        'cobalt-thiocyanate-test',
+        'scott-test',
         'wagner-test',
         'simon-test',
         'ehrlich-test',
+        'liebermann-test',
+        'potassium-dichromate-test',
+        'chen-kao-test',
+        'modified-cobalt-thiocyanate-test',
+        'nitric-sulfuric-acid-test',
         '1-2-dinitrobenzene-test',
         '1-3-dinitrobenzene-test',
         '1-4-dinitrobenzene-test'
